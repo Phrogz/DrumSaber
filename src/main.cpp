@@ -16,15 +16,15 @@ CRGB leds[NUM_LEDS];
 #define MAX_BRIGHTNESS  255
 
 #define STANDARD_SPEED_PXPERSECOND 60
-#define IMPULSE_LIFE_MS 10000
+#define IMPULSE_LIFE_MS 5000
 
 ImpulseList impulses;
 unsigned long nextBeatTime = 0; // TODO: remove this when it's no longer used; exists to simulate received beats
 unsigned long msPerBeat = static_cast<unsigned long>(60000 / BPM);
 
 void setup() {
-	Serial.begin(9600);
-	Serial.println("DrumSaber Starting Up...");
+	// Serial.begin(9600);
+	// Serial.println("DrumSaber Starting Up...");
 
 	delay(1000); // power-up safety delay
 	FastLED.addLeds<CHIPSET, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
@@ -44,8 +44,10 @@ void receiveImpulses(unsigned long nowMS) {
 		uint16_t piezoADC = analogRead(PIEZO_PIN);
 		if (piezoADC > hitThreshold) {
 			nextAllowedHitMS = nowMS + minMSBetweenHits;
-			int offset = nowMS - nextBeatTime;
-			if (offset < 0) offset = -offset; // TODO: replace this with better performant, but abs() wasn't working right
+			// Positive modulus; where are we within the beat
+			int offset = ((nowMS - nextBeatTime) % msPerBeat + msPerBeat) % msPerBeat;
+			// Find offset from nearest beat
+			if (offset > msPerBeat/2) offset = msPerBeat - offset;
 			// Serial.println("HIT! @ " + String(nowMS) + " value " + String(piezoADC) + " with offset " + String(offset) + " vs " + String(hitWindowMS));
 			// if (offset <= hitWindowMS) {
 				float power = 1.0f - static_cast<float>(offset) / hitWindowMS;
@@ -67,7 +69,7 @@ void manageImpulses(unsigned long nowMS) {
 	if (nowMS < IMPULSE_LIFE_MS) return;
 	int removed = impulses.purgeBefore(nowMS - IMPULSE_LIFE_MS);
 	// if (removed > 0) {
-        // Serial.println("...at " + String(nowMS) + " we removed " + String(removed) + " impulses; the collection should have " + String(impulses.count()) + " impulse(s).");
+    //     Serial.println("...at " + String(nowMS) + " we removed " + String(removed) + " impulses; the collection should have " + String(impulses.count()) + " impulse(s).");
 	// }
 }
 
