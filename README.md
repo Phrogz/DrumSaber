@@ -10,7 +10,7 @@ The long-term plan is to use an M5 Atom ESP32 to control the lighting, but initi
 * 1MΩ and 10kΩ resistors
 * DC Barrel Jack Adapters - [Male](https://www.sparkfun.com/products/10287) & [Female](https://www.sparkfun.com/products/10288)
 * 5+V power supply
-    * When powered through the barrel jack the Arduino Udo requires a power supply that gives 7.5V ideally, up to 9V or 12V. The APA102 light strip should not be fed much more than 5V. They way I've chosen to share the power between Arduino and lights with a single power supply works acceptably if the power supply is set to 5.5V.
+    * When powered through the barrel jack the Arduino Uno requires a power supply that gives 7.5V ideally, up to 9V or 12V. However, the APA102 light strip should not be fed much more than 5V. They way I've chosen to share the power between Arduino and lights with a single power supply works acceptably if the power supply is set to 5.5V or 6V, underpowering the Uno and overpowering the lights, but so far so good.
     * Switching from Arduino Uno to M5 Atom will lower the power requirements back down to a shared 5V.
 
 ## Connections
