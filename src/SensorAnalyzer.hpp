@@ -7,6 +7,7 @@ public:
     SensorAnalyzer()
     {
         pinMode(kButtonPin, INPUT);
+        //if (!adcAttachPin(kPiezoPin)) // non-blocking todo
     }
 
     /**
@@ -24,12 +25,22 @@ public:
         }
         else if (m_lastButtonState == LOW && state == HIGH)
         {
-            std::lock_guard<std::mutex> guard(m_mutex);
             Serial.printf("Button down %llu ms\n", time - m_lastButtonTime);
 
+            std::lock_guard<std::mutex> guard(m_mutex);
             m_beats.push_back({time, static_cast<uint8_t>(std::min(time - m_lastButtonTime, 1000ULL) * 255ULL / 1000ULL)});
         }
         m_lastButtonState = state;
+
+        // Piezo test
+        uint16_t piezo{ analogRead(kPiezoPin) };
+        if (piezo != 0)
+        {
+            Serial.printf("kPiezoPin: %u\n", piezo);
+
+            std::lock_guard<std::mutex> guard(m_mutex);
+            m_beats.push_back({time, static_cast<uint8_t>(std::min<uint64_t>(piezo, 1000) * 255ULL / 1000ULL)});
+        }
     }
 
     struct Beat
