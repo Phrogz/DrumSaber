@@ -1,5 +1,6 @@
-#include <vector>
+#include <exception>
 #include <mutex>
+#include <vector>
 
 class SensorAnalyzer
 {
@@ -7,7 +8,8 @@ public:
     SensorAnalyzer()
     {
         pinMode(kButtonPin, INPUT);
-        //if (!adcAttachPin(kPiezoPin)) // non-blocking todo
+        if (!adcAttachPin(kPiezoPin))
+            log_e("Could not initialize ADC");
     }
 
     /**
@@ -25,7 +27,7 @@ public:
         }
         else if (m_lastButtonState == LOW && state == HIGH)
         {
-            Serial.printf("Button down %llu ms\n", time - m_lastButtonTime);
+            log_d("Button down %llu ms", time - m_lastButtonTime);
 
             std::lock_guard<std::mutex> guard(m_mutex);
             m_beats.push_back({time, static_cast<uint8_t>(std::min(time - m_lastButtonTime, 1000ULL) * 255ULL / 1000ULL)});
@@ -36,11 +38,17 @@ public:
         uint16_t piezo{ analogRead(kPiezoPin) };
         if (piezo != 0)
         {
-            Serial.printf("kPiezoPin: %u\n", piezo);
+            log_d("kPiezoPin analogRead: %u", piezo);
 
             std::lock_guard<std::mutex> guard(m_mutex);
             m_beats.push_back({time, static_cast<uint8_t>(std::min<uint64_t>(piezo, 1000) * 255ULL / 1000ULL)});
         }
+    }
+
+    bool hasBeats() &
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+        return !m_beats.empty();
     }
 
     struct Beat
@@ -50,7 +58,7 @@ public:
     };
 
     /**
-     * Return all the recent beats since last call.
+     * Return all the recent beats since last call and clear the beats vector.
      */
     std::vector<Beat> getBeats() &
     {

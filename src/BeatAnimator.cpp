@@ -1,7 +1,7 @@
 #include "BeatAnimator.hpp"
 
-#include "SensorAnalyzer.hpp"
 #include "LedRenderer.hpp"
+#include "SensorAnalyzer.hpp"
 
  BeatAnimator::BeatAnimator(SensorAnalyzer& sensors, LedRenderer& leds) :
     m_leds{leds},
@@ -20,9 +20,14 @@ void BeatAnimator::update(uint64_t time) &
         m_lastStep = time;
     }
 
-    for (auto beat : m_sensors.getBeats())
+    if (m_sensors.hasBeats())
     {
-        Serial.printf("Button down time:%.2f intensity:%d\n", beat.time / 1000.0F, beat.intensity);
-        *leds = CHSV(beat.intensity, 255, 255);
+        auto const beats{ m_sensors.getBeats() };
+        log_d("Beats %d:", beats.size());
+        for (auto beat : beats)
+        {
+            log_d("  time:%.2f intensity:%d", beat.time / 1000.0F, beat.intensity);
+            *leds = CHSV(beat.intensity, 255, 255);
+        }
     }
 }

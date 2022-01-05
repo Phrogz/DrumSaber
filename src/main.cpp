@@ -18,7 +18,7 @@ void setup()
     leds = new LedRenderer();
     animator = new BeatAnimator(*sensors, *leds);
 
-    Serial.println(" started,");
+    Serial.println(" started.");
 }
 
 void loop()
